@@ -5,44 +5,140 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Image Viewer</title>
     <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+        #filters, #image-info, #image-viewer {
+            margin: 20px auto;
+            width: 80%;
+            max-width: 800px;
+        }
+        #filters {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+        }
+        #filters label {
+            margin: 5px;
+        }
+        #filters select, #filters button {
+            margin: 5px;
+        }
+        #image-viewer {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-top: 10px;
+        }
+        #image-stats {
+            margin: 10px 0;
+        }
         img {
             max-width: 100%;
             height: auto;
+            margin-top: 20px;
+        }
+        p {
+            margin: 5px 0;
         }
     </style>
 </head>
 <body>
     <h1>Image Viewer</h1>
-    <div>
-        <label for="position-deviation">Position Deviation:</label>
-        <select id="position-deviation">
-            <option value="">All</option>
-            <option value="小">小</option>
-            <option value="中">中</option>
-            <option value="大">大</option>
-        </select>
-
-        <label for="scene">Scene:</label>
+    <div id="filters">
+        <label for="scene">场景:</label>
         <select id="scene">
-            <option value="">All</option>
+            <option value="">所有</option>
             <option value="市区">市区</option>
             <option value="高速">高速</option>
         </select>
 
-        <button onclick="filterImages()">Filter</button>
+        <label for="x_error_close_mean_large">x_error_close_mean_large:</label>
+        <select id="x_error_close_mean_large">
+            <option value="">所有</option>
+            <option value="1">是</option>
+            <option value="0">否</option>
+        </select>
+
+        <label for="x_error_far_mean_large">x_error_far_mean_large:</label>
+        <select id="x_error_far_mean_large">
+            <option value="">所有</option>
+            <option value="1">是</option>
+            <option value="0">否</option>
+        </select>
+
+        <label for="z_error_close_mean_large">z_error_close_mean_large:</label>
+        <select id="z_error_close_mean_large">
+            <option value="">所有</option>
+            <option value="1">是</option>
+            <option value="0">否</option>
+        </select>
+
+        <label for="z_error_far_mean_large">z_error_far_mean_large:</label>
+        <select id="z_error_far_mean_large">
+            <option value="">所有</option>
+            <option value="1">是</option>
+            <option value="0">否</option>
+        </select>
+
+        <label for="x_error_close_mean_20">x_error_close_mean_20:</label>
+        <select id="x_error_close_mean_20">
+            <option value="">所有</option>
+            <option value="1">是</option>
+            <option value="0">否</option>
+        </select>
+
+        <label for="x_error_far_mean_20">x_error_far_mean_20:</label>
+        <select id="x_error_far_mean_20">
+            <option value="">所有</option>
+            <option value="1">是</option>
+            <option value="0">否</option>
+        </select>
+
+        <label for="z_error_close_mean_20">z_error_close_mean_20:</label>
+        <select id="z_error_close_mean_20">
+            <option value="">所有</option>
+            <option value="1">是</option>
+            <option value="0">否</option>
+        </select>
+
+        <label for="z_error_far_mean_20">z_error_far_mean_20:</label>
+        <select id="z_error_far_mean_20">
+            <option value="">所有</option>
+            <option value="1">是</option>
+            <option value="0">否</option>
+        </select>
+
+        <button onclick="filterImages()">筛选</button>
     </div>
     <div id="image-viewer">
-        <button onclick="prevImage()">Previous</button>
-        <button onclick="nextImage()">Next</button>
+        <div id="navigation-buttons">
+            <button onclick="prevImage()">上一张</button>
+            <button onclick="nextImage()">下一张</button>
+        </div>
         <div id="image-info">
-            <p id="position-deviation-info"></p>
+            <div id="image-stats"></div>
+            <p id="image-path-info"></p>
+            <p id="x_error_close_mean-info"></p>
+            <p id="x_error_far_mean-info"></p>
+            <p id="z_error_close_mean-info"></p>
+            <p id="z_error_far_mean-info"></p>
             <p id="scene-info"></p>
         </div>
-        <img id="current-image" src="" alt="Current Image" style="max-width: 50%; height: auto;">
+        <img id="current-image" src="" alt="Current Image">
     </div>
 
     <script>
         let images = [];
+        let filteredImages = [];
         let currentIndex = 0;
 
         function fetchImages() {
@@ -50,53 +146,82 @@
                 .then(response => response.json())
                 .then(data => {
                     images = data;
+                    filteredImages = data;
                     displayImage();
+                    updateImageStats();
                 });
         }
 
         function filterImages() {
-            const positionDeviation = document.getElementById('position-deviation').value;
-            const scene = document.getElementById('scene').value;
+            const filters = {
+                scene: document.getElementById('scene').value,
+                x_error_close_mean_large: document.getElementById('x_error_close_mean_large').value,
+                x_error_far_mean_large: document.getElementById('x_error_far_mean_large').value,
+                z_error_close_mean_large: document.getElementById('z_error_close_mean_large').value,
+                z_error_far_mean_large: document.getElementById('z_error_far_mean_large').value,
+                x_error_close_mean_20: document.getElementById('x_error_close_mean_20').value,
+                x_error_far_mean_20: document.getElementById('x_error_far_mean_20').value,
+                z_error_close_mean_20: document.getElementById('z_error_close_mean_20').value,
+                z_error_far_mean_20: document.getElementById('z_error_far_mean_20').value
+            };
 
             fetch('/api/images/filter', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ position_deviation: positionDeviation, scene: scene })
+                body: JSON.stringify(filters)
             })
                 .then(response => response.json())
                 .then(data => {
-                    images = data;
+                    filteredImages = data;
                     currentIndex = 0;
                     displayImage();
+                    updateImageStats();
                 });
         }
 
         function displayImage() {
-            if (images.length > 0) {
-                const currentImage = images[currentIndex];
+            if (filteredImages.length > 0) {
+                const currentImage = filteredImages[currentIndex];
                 document.getElementById('current-image').src = currentImage.image_path;
-                document.getElementById('position-deviation-info').innerText = 'Position Deviation: ' + currentImage.position_deviation;
-                document.getElementById('scene-info').innerText = 'Scene: ' + currentImage.scene;
+                document.getElementById('image-path-info').innerText = '图像名字: ' + currentImage.image_path.split('/').pop();
+                document.getElementById('x_error_close_mean-info').innerText = 'x_error_close_mean: ' + currentImage.x_error_close_mean;
+                document.getElementById('x_error_far_mean-info').innerText = 'x_error_far_mean: ' + currentImage.x_error_far_mean;
+                document.getElementById('z_error_close_mean-info').innerText = 'z_error_close_mean: ' + currentImage.z_error_close_mean;
+                document.getElementById('z_error_far_mean-info').innerText = 'z_error_far_mean: ' + currentImage.z_error_far_mean;
+                document.getElementById('scene-info').innerText = '场景: ' + currentImage.scene;
             } else {
                 document.getElementById('current-image').src = '';
-                document.getElementById('position-deviation-info').innerText = '';
+                document.getElementById('image-path-info').innerText = '';
+                document.getElementById('x_error_close_mean-info').innerText = '';
+                document.getElementById('x_error_far_mean-info').innerText = '';
+                document.getElementById('z_error_close_mean-info').innerText = '';
+                document.getElementById('z_error_far_mean-info').innerText = '';
                 document.getElementById('scene-info').innerText = '';
             }
         }
 
+        function updateImageStats() {
+            const totalImages = images.length;
+            const totalFilteredImages = filteredImages.length;
+            const currentImageIndex = currentIndex + 1;
+            document.getElementById('image-stats').innerText = `第 ${currentImageIndex} 张/总计 ${totalImages} 张，过滤后：第 ${currentImageIndex} 张/总计 ${totalFilteredImages} 张`;
+        }
+
         function nextImage() {
-            if (images.length > 0) {
-                currentIndex = (currentIndex + 1) % images.length;
+            if (filteredImages.length > 0) {
+                currentIndex = (currentIndex + 1) % filteredImages.length;
                 displayImage();
+                updateImageStats();
             }
         }
 
         function prevImage() {
-            if (images.length > 0) {
-                currentIndex = (currentIndex - 1 + images.length) % images.length;
+            if (filteredImages.length > 0) {
+                currentIndex = (currentIndex - 1 + filteredImages.length) % filteredImages.length;
                 displayImage();
+                updateImageStats();
             }
         }
 

@@ -12,7 +12,22 @@ db = SQLAlchemy(app)
 class Image(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     image_path = db.Column(db.String(100), nullable=False)
-    position_deviation = db.Column(db.String(20), nullable=False)
+    
+    x_error_close_mean = db.Column(db.Float(precision=20), nullable=False)
+    x_error_far_mean = db.Column(db.Float(precision=20), nullable=False)
+    z_error_close_mean = db.Column(db.Float(precision=20), nullable=False)
+    z_error_far_mean = db.Column(db.Float(precision=20), nullable=False)
+    
+    x_error_close_mean_large = db.Column(db.Boolean, nullable=False)
+    x_error_far_mean_large = db.Column(db.Boolean, nullable=False)
+    z_error_close_mean_large = db.Column(db.Boolean, nullable=False)
+    z_error_far_mean_large = db.Column(db.Boolean, nullable=False)
+    
+    x_error_close_mean_20 = db.Column(db.Boolean, nullable=False)
+    x_error_far_mean_20 = db.Column(db.Boolean, nullable=False)
+    z_error_close_mean_20 = db.Column(db.Boolean, nullable=False)
+    z_error_far_mean_20 = db.Column(db.Boolean, nullable=False)
+    
     scene = db.Column(db.String(20), nullable=False)
 
 @app.route('/')
@@ -26,7 +41,18 @@ def get_images():
         {
             'id': img.id,
             'image_path': img.image_path,
-            'position_deviation': img.position_deviation,
+            'x_error_close_mean': img.x_error_close_mean,
+            'x_error_far_mean': img.x_error_far_mean,
+            'z_error_close_mean': img.z_error_close_mean,
+            'z_error_far_mean': img.z_error_far_mean,
+            'x_error_close_mean_large': img.x_error_close_mean_large,
+            'x_error_far_mean_large': img.x_error_far_mean_large,
+            'z_error_close_mean_large': img.z_error_close_mean_large,
+            'z_error_far_mean_large': img.z_error_far_mean_large,
+            'x_error_close_mean_20': img.x_error_close_mean_20,
+            'x_error_far_mean_20': img.x_error_far_mean_20,
+            'z_error_close_mean_20': img.z_error_close_mean_20,
+            'z_error_far_mean_20': img.z_error_far_mean_20,
             'scene': img.scene
         }
         for img in images
@@ -35,22 +61,45 @@ def get_images():
 
 @app.route('/api/images/filter', methods=['POST'])
 def filter_images():
-    data = request.json
-    position_deviation = data.get('position_deviation')
-    scene = data.get('scene')
-
+    filters = request.json
     query = Image.query
-    if position_deviation:
-        query = query.filter_by(position_deviation=position_deviation)
-    if scene:
-        query = query.filter_by(scene=scene)
+
+    if filters['scene']:
+        query = query.filter_by(scene=filters['scene'])
+    if filters['x_error_close_mean_large']:
+        query = query.filter_by(x_error_close_mean_large=bool(int(filters['x_error_close_mean_large'])))
+    if filters['x_error_far_mean_large']:
+        query = query.filter_by(x_error_far_mean_large=bool(int(filters['x_error_far_mean_large'])))
+    if filters['z_error_close_mean_large']:
+        query = query.filter_by(z_error_close_mean_large=bool(int(filters['z_error_close_mean_large'])))
+    if filters['z_error_far_mean_large']:
+        query = query.filter_by(z_error_far_mean_large=bool(int(filters['z_error_far_mean_large'])))
+    if filters['x_error_close_mean_20']:
+        query = query.filter_by(x_error_close_mean_20=bool(int(filters['x_error_close_mean_20'])))
+    if filters['x_error_far_mean_20']:
+        query = query.filter_by(x_error_far_mean_20=bool(int(filters['x_error_far_mean_20'])))
+    if filters['z_error_close_mean_20']:
+        query = query.filter_by(z_error_close_mean_20=bool(int(filters['z_error_close_mean_20'])))
+    if filters['z_error_far_mean_20']:
+        query = query.filter_by(z_error_far_mean_20=bool(int(filters['z_error_far_mean_20'])))
 
     images = query.all()
     result = [
         {
             'id': img.id,
             'image_path': img.image_path,
-            'position_deviation': img.position_deviation,
+            'x_error_close_mean': img.x_error_close_mean,
+            'x_error_far_mean': img.x_error_far_mean,
+            'z_error_close_mean': img.z_error_close_mean,
+            'z_error_far_mean': img.z_error_far_mean,
+            'x_error_close_mean_large': img.x_error_close_mean_large,
+            'x_error_far_mean_large': img.x_error_far_mean_large,
+            'z_error_close_mean_large': img.z_error_close_mean_large,
+            'z_error_far_mean_large': img.z_error_far_mean_large,
+            'x_error_close_mean_20': img.x_error_close_mean_20,
+            'x_error_far_mean_20': img.x_error_far_mean_20,
+            'z_error_close_mean_20': img.z_error_close_mean_20,
+            'z_error_far_mean_20': img.z_error_far_mean_20,
             'scene': img.scene
         }
         for img in images
