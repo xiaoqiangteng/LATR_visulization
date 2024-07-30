@@ -35,6 +35,7 @@ def get_data_image(file_path):
     file_path_image = osp.join(file_path, 'results/')
     file_path_error = osp.join(file_path, 'results_error/')
     _, data_list_file = get_dir_and_file_list(file_path_image)
+    data_list_file = sorted(data_list_file)
     
     data_list_image = []
     for file in data_list_file:

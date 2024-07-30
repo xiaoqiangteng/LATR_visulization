@@ -49,6 +49,10 @@
         p {
             margin: 5px 0;
         }
+        #jump-input {
+            width: 50px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -122,6 +126,8 @@
     <div id="image-viewer">
         <div id="navigation-buttons">
             <button onclick="prevImage()">上一张</button>
+            <input id="jump-input" type="number" min="1" placeholder="跳转到">
+            <button onclick="jumpToImage()">跳转</button>
             <button onclick="nextImage()">下一张</button>
         </div>
         <div id="image-info">
@@ -225,7 +231,29 @@
             }
         }
 
-        window.onload = fetchImages;
+        function jumpToImage() {
+            const jumpIndex = parseInt(document.getElementById('jump-input').value, 10) - 1;
+            if (filteredImages.length > 0 && !isNaN(jumpIndex) && jumpIndex >= 0 && jumpIndex < filteredImages.length) {
+                currentIndex = jumpIndex;
+                displayImage();
+                updateImageStats();
+            } else {
+                alert('请输入有效的图片编号');
+            }
+        }
+
+        function handleKeyDown(event) {
+            if (event.key === 'ArrowLeft') {
+                prevImage();
+            } else if (event.key === 'ArrowRight') {
+                nextImage();
+            }
+        }
+
+        window.onload = function() {
+            fetchImages();
+            document.addEventListener('keydown', handleKeyDown);
+        }
     </script>
 </body>
 </html>

@@ -262,7 +262,7 @@ def plot_3D(lane_prediction, lane_visibility_prediction, lane_ground_truth, lane
             x_2d = x_2d.astype(np.int32)
             y_2d = y_2d.astype(np.int32)
             
-            curve_color = (255, 0, 0)
+            curve_color = (0, 0, 255)
             curve_thickness = 2
             cv2.polylines(image_real, [np.column_stack((x_2d, y_2d))], isClosed=False, color=curve_color, thickness=curve_thickness)
     
@@ -293,7 +293,7 @@ def plot_3D(lane_prediction, lane_visibility_prediction, lane_ground_truth, lane
             x_2d = x_2d.astype(np.int32)
             y_2d = y_2d.astype(np.int32)
             
-            curve_color = (0, 0, 255)
+            curve_color = (255, 0, 0)
             curve_thickness = 2
             cv2.polylines(image_real, [np.column_stack((x_2d, y_2d))], isClosed=False, color=curve_color, thickness=curve_thickness)
     
@@ -411,7 +411,7 @@ def get_data_visulization(file_path, file_path_image):
         output_file_name_error = os.path.join(output_file_path_error, file)
         get_data_error_json(data_list_error, file, output_file_name_error)
         
-        output_file_path = osp.join(_file_path, 'results_close_larger_than_far/')
+        output_file_path = osp.join(_file_path, 'results/')
         if not os.path.exists(output_file_path):
             os.makedirs(output_file_path)
         
