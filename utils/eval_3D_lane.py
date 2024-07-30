@@ -35,10 +35,16 @@ Evaluation metrics includes:
     z error far (0 - 100 m)
 """
 
-from copy import deepcopy
+from copy import copy, deepcopy
+from email.mime import image
 import numpy as np
 from utils.utils import *
 from utils.MinCostFlow import SolveMinCostFlow
+from collections import OrderedDict
+from os import path as osp
+import json
+
+_file_path = "/media/data3/txq/programmings/git/LATR/work_dirs/openlane/release_iccv/latr_1000_baseline/visualization/"
 
 class LaneEval(object):
     def __init__(self, args, logger):        
@@ -58,7 +64,10 @@ class LaneEval(object):
         self.args = args
         self.logger = logger
 
-    def bench(self, pred_lanes, pred_category, gt_lanes, gt_visibility, gt_category, raw_file, gt_cam_height, gt_cam_pitch, vis, P_g2im=None):
+    def bench(self, pred_lanes, pred_category, gt_lanes, gt_visibility, gt_category,
+              raw_file, gt_cam_height, gt_cam_pitch, vis, P_g2im=None, H_g2im=None, H_crop=None,
+              file_path='', data_image=None, label_visulization=True,
+              cam_extrinsics=None, cam_intrinsics=None):
         """
             Matching predicted lanes and ground-truth lanes in their IPM projection, ignoring z attributes.
             x error, y_error, and z error are all considered, although the matching does not rely on z
@@ -87,13 +96,16 @@ class LaneEval(object):
         z_error_far = []
 
         # only keep the visible portion
+        # print("\tTrace: Visible filter in GT lane")
         gt_lanes = [prune_3d_lane_by_visibility(np.array(gt_lane), np.array(gt_visibility[k])) for k, gt_lane in
-                    enumerate(gt_lanes)]
+                    enumerate(gt_lanes)]        
         if 'openlane' in self.dataset_name:
             gt_category = [gt_category[k] for k, lane in enumerate(gt_lanes) if lane.shape[0] > 1]
         gt_lanes = [lane for lane in gt_lanes if lane.shape[0] > 1]
+        # print(len(pred_lanes), len(pred_category), len(gt_lanes), len(gt_visibility), len(gt_category))
 
         # # only consider those pred lanes overlapping with sampling range
+        # print("\tTrace: Range ilter in predicted lane")
         pred_category = [pred_category[k] for k, lane in enumerate(pred_lanes)
                         if np.array(lane)[0, 1] < self.y_samples[-1] and np.array(lane)[-1, 1] > self.y_samples[0]]
         pred_lanes = [lane for lane in pred_lanes if np.array(lane)[0, 1] < self.y_samples[-1] and np.array(lane)[-1, 1] > self.y_samples[0]]
@@ -102,8 +114,10 @@ class LaneEval(object):
 
         pred_category = [pred_category[k] for k, lane in enumerate(pred_lanes) if np.array(lane).shape[0] > 1]
         pred_lanes = [lane for lane in pred_lanes if np.array(lane).shape[0] > 1]
+        # print(len(pred_lanes), len(pred_category), len(gt_lanes), len(gt_visibility), len(gt_category))
 
         # only consider those gt lanes overlapping with sampling range
+        # print("\tTrace: Range filter in GT lane")
         gt_category = [gt_category[k] for k, lane in enumerate(gt_lanes)
                         if lane[0, 1] < self.y_samples[-1] and lane[-1, 1] > self.y_samples[0]]
         gt_lanes = [lane for lane in gt_lanes if lane[0, 1] < self.y_samples[-1] and lane[-1, 1] > self.y_samples[0]]
@@ -112,6 +126,7 @@ class LaneEval(object):
 
         gt_category = [gt_category[k] for k, lane in enumerate(gt_lanes) if lane.shape[0] > 1]
         gt_lanes = [lane for lane in gt_lanes if lane.shape[0] > 1]
+        # print(len(pred_lanes), len(pred_category), len(gt_lanes), len(gt_visibility), len(gt_category))
 
         cnt_gt = len(gt_lanes)
         cnt_pred = len(pred_lanes)
@@ -120,6 +135,7 @@ class LaneEval(object):
         pred_visibility_mat = np.zeros((cnt_pred, 100))
 
         # resample gt and pred at y_samples
+        # print("\tTrace: Resample GT and predicted lane")
         for i in range(cnt_gt):
             min_y = np.min(np.array(gt_lanes[i])[:, 1])
             max_y = np.max(np.array(gt_lanes[i])[:, 1])
@@ -152,6 +168,40 @@ class LaneEval(object):
         pred_category = [pred_category[k] for k in range(cnt_pred) if np.sum(pred_visibility_mat[k, :]) > 1]
         pred_visibility_mat = pred_visibility_mat[np.sum(pred_visibility_mat, axis=-1) > 1, :]
         cnt_pred = len(pred_lanes)
+
+        def write_file_json(data_dict, output_file_name):
+            with open(output_file_name, "w") as f:
+                json.dump(data_dict, f, indent=4)
+
+        data_list_pred_lanes = [list([list(data_lane) for data_lane in data_list]) for data_list in pred_lanes]
+        data_list_gt_lanes = [list([list(data_lane) for data_lane in data_list]) for data_list in gt_lanes]
+        data_list_pred_visibility_mat = [list(data) for data in pred_visibility_mat]
+        data_list_gt_visibility_mat = [list(data) for data in gt_visibility_mat]
+
+        data_transform = np.matmul(H_crop, H_g2im)
+        data_list_P_g2im = [list(data_lane) for data_lane in P_g2im]
+        data_transform = [list(data_lane) for data_lane in data_transform]
+        data_list_cam_extrinsics = [list(data_lane) for data_lane in cam_extrinsics]
+        data_list_cam_intrinsics = [list(data_lane) for data_lane in cam_intrinsics]
+
+        if label_visulization:
+            data_dict_lane = OrderedDict()
+            data_dict_lane['lane_prediction'] = deepcopy(list(data_list_pred_lanes))
+            data_dict_lane['lane_ground_truth'] = deepcopy(list(data_list_gt_lanes))
+            data_dict_lane['lane_visibility_prediction'] = deepcopy(list(data_list_pred_visibility_mat))
+            data_dict_lane['lane_visibility_ground_truth'] = deepcopy(list(data_list_gt_visibility_mat))
+            data_dict_lane['transform'] = deepcopy(data_list_P_g2im)
+            data_dict_lane['transform_homograpthy'] = deepcopy(data_transform)
+            data_dict_lane['cam_extrinsics'] = deepcopy(data_list_cam_extrinsics)
+            data_dict_lane['cam_intrinsics'] = deepcopy(data_list_cam_intrinsics)
+        
+            file_path = file_path.replace('.jpg', '.json')
+            
+            if len(data_dict_lane) > 0:
+                output_file_name = os.path.join(_file_path, file_path)
+            
+            write_file_json(data_dict_lane, output_file_name)
+            print("\tTrace: Write data to ", output_file_name)
 
         adj_mat = np.zeros((cnt_gt, cnt_pred), dtype=int)
         cost_mat = np.zeros((cnt_gt, cnt_pred), dtype=int)
@@ -256,21 +306,22 @@ class LaneEval(object):
         return r_lane, p_lane, c_lane, cnt_gt, cnt_pred, match_num, x_error_close, x_error_far, z_error_close, z_error_far
 
 
-    def bench_one_submit(self, pred_dir, gt_dir, test_txt, prob_th=0.5, vis=False):
+    def bench_one_submit(self, pred_dir, gt_dir, test_txt, prob_th=0.5, vis=False,
+                         label_visulization=True):
         pred_lines = open(test_txt).readlines()
         gt_lines = pred_lines
 
         json_pred = []
         json_gt = []
 
-        print("Loading pred json ...")
+        # print("Loading pred json ...")
         for pred_file_path in pred_lines:
             pred_lines = pred_dir + pred_file_path.strip('\n').replace('jpg','json')
 
             with open(pred_lines,'r') as fp:
                 json_pred.append(json.load(fp))
 
-        print("Loading gt json ...")
+        # print("Loading gt json ...")
         for gt_file_path in gt_lines:
             gt_lines = gt_dir + gt_file_path.strip('\n').replace('jpg','json')
 
@@ -364,7 +415,8 @@ class LaneEval(object):
                                                     gt_cam_height,
                                                     gt_cam_pitch,
                                                     vis,
-                                                    P_g2im)
+                                                    P_g2im,
+                                                    label_visulization=label_visulization)
             laneline_stats.append(np.array([r_lane, p_lane, c_lane, cnt_gt, cnt_pred, match_num]))
 
             laneline_x_error_close.extend(x_error_close)
@@ -420,9 +472,11 @@ class LaneEval(object):
 
     
     # compare predicted set and ground-truth set using a fixed lane probability threshold
-    def bench_one_submit_ddp(self, pred_lines_sub, gt_lines_sub, model_name, prob_th=0.5, vis=False):
+    def bench_one_submit_ddp(self, pred_lines_sub, gt_lines_sub, model_name, prob_th=0.5, vis=False, data_list_image=[],
+                             label_visulization=True):
         json_gt = gt_lines_sub
         json_pred = pred_lines_sub
+        data_list_images = data_list_image
 
         gts = {l['file_path']: l for l in json_gt}
 
@@ -437,6 +491,9 @@ class LaneEval(object):
             if 'file_path' not in pred or 'pred_laneLines' not in pred:
                 raise Exception('file_path or lane_lines not in some predictions.')
             raw_file = pred['file_path']
+            file_path_test = raw_file.replace('/', '+')
+            # data_image = data_list_images[i]
+            data_image = None
 
             pred_lanes = pred['pred_laneLines']
             pred_lanes_prob = pred['pred_laneLines_prob']
@@ -533,6 +590,8 @@ class LaneEval(object):
                 P_g2im = projection_g2im(gt_cam_pitch, gt_cam_height, cam_intrinsics)
             else:
                 P_g2im = projection_g2im_extrinsic(cam_extrinsics, cam_intrinsics)
+                H_g2im = homograpthy_g2im_extrinsic(cam_extrinsics, cam_intrinsics)
+                H_crop = homography_crop_resize([1280, 1920], 0, [720, 960])
 
             # N to N matching of lanelines
             gt_num_all += len(gt_lanes)
@@ -548,7 +607,14 @@ class LaneEval(object):
                                                     gt_cam_height,
                                                     gt_cam_pitch,
                                                     vis,
-                                                    P_g2im)
+                                                    P_g2im,
+                                                    H_g2im=H_g2im,
+                                                    H_crop=H_crop,
+                                                    file_path=file_path_test,
+                                                    data_image=data_image,
+                                                    label_visulization=label_visulization,
+                                                    cam_extrinsics=cam_extrinsics,
+                                                    cam_intrinsics=cam_intrinsics)
             laneline_stats.append(np.array([r_lane, p_lane, c_lane, cnt_gt, cnt_pred, match_num]))
             # consider x_error z_error only for the matched lanes
             # if r_lane > 0 and p_lane > 0:
