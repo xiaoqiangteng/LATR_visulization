@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Viewer</title>
+    <style>
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Image Viewer</h1>
+    <div>
+        <label for="position-deviation">Position Deviation:</label>
+        <select id="position-deviation">
+            <option value="">All</option>
+            <option value="小">小</option>
+            <option value="中">中</option>
+            <option value="大">大</option>
+        </select>
+
+        <label for="scene">Scene:</label>
+        <select id="scene">
+            <option value="">All</option>
+            <option value="市区">市区</option>
+            <option value="高速">高速</option>
+        </select>
+
+        <button onclick="filterImages()">Filter</button>
+    </div>
+    <div id="image-viewer">
+        <button onclick="prevImage()">Previous</button>
+        <button onclick="nextImage()">Next</button>
+        <div id="image-info">
+            <p id="position-deviation-info"></p>
+            <p id="scene-info"></p>
+        </div>
+        <img id="current-image" src="" alt="Current Image" style="max-width: 50%; height: auto;">
+    </div>
+
+    <script>
+        let images = [];
+        let currentIndex = 0;
+
+        function fetchImages() {
+            fetch('/api/images')
+                .then(response => response.json())
+                .then(data => {
+                    images = data;
+                    displayImage();
+                });
+        }
+
+        function filterImages() {
+            const positionDeviation = document.getElementById('position-deviation').value;
+            const scene = document.getElementById('scene').value;
+
+            fetch('/api/images/filter', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ position_deviation: positionDeviation, scene: scene })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    images = data;
+                    currentIndex = 0;
+                    displayImage();
+                });
+        }
+
+        function displayImage() {
+            if (images.length > 0) {
+                const currentImage = images[currentIndex];
+                document.getElementById('current-image').src = currentImage.image_path;
+                document.getElementById('position-deviation-info').innerText = 'Position Deviation: ' + currentImage.position_deviation;
+                document.getElementById('scene-info').innerText = 'Scene: ' + currentImage.scene;
+            } else {
+                document.getElementById('current-image').src = '';
+                document.getElementById('position-deviation-info').innerText = '';
+                document.getElementById('scene-info').innerText = '';
+            }
+        }
+
+        function nextImage() {
+            if (images.length > 0) {
+                currentIndex = (currentIndex + 1) % images.length;
+                displayImage();
+            }
+        }
+
+        function prevImage() {
+            if (images.length > 0) {
+                currentIndex = (currentIndex - 1 + images.length) % images.length;
+                displayImage();
+            }
+        }
+
+        window.onload = fetchImages;
+    </script>
+</body>
+</html>
