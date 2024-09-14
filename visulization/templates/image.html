@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Image Detail</title>
+</head>
+<body>
+    <h1>Image Detail</h1>
+    <img src="{{ image.image_path }}" alt="Image">
+    <p>Label: {{ image.label }}</p>
+    <a href="{{ url_for('index') }}">Back to Gallery</a>
+</body>
+</html>
