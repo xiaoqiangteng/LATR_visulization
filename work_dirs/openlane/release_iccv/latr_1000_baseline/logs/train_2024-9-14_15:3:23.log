@@ -1,0 +1,90 @@
+Sat, 14-Sep-2024 15:37:23 runner.py[line:41] INFO Let's us2024-09-1Sat, 14-Sep-2024 15:37:23 runner.py[line:46] INFO Lo2024-09-14 15:03:2Sat, 14-Sep-2024 15:37:23 runner.p2024-09-14 15:03:23,404 - mSat, 14-Sep-2024 15:37:23 logging.py[line:107] INFO initialize ResNet with init_cfg {'type': 'Pretrained', 'c2024-09-14 15:03:23,784 - mmdet - INFO - Convert model with Sync BatchNorm
+2024-09-14 15:03:25,133 - mmdet - INFO - => Warning: no checkpoint found at ''
+2024-09-14 15:03:25,235 - mmdet - INFO - ========================================
+Args:Config (path: config/release_iccv/latr_1000_baseline.py): {'dataset_name': 'openlane', 'dataset': '1000', 'data_dir': '/media/data3/txq/programmings/git/data/openlane/lane3d_1000/', 'dataset_dir': '/media/data3/txq/programmings/git/data/openlane/images/', 'output_dir': 'openlane', 'org_h': 1280, 'org_w': 1920, 'crop_y': 0, 'ipm_h': 208, 'ipm_w': 128, 'resize_h': 720, 'resize_w': 960, 'mean': [0.485, 0.456, 0.406], 'std': [0.229, 0.224, 0.225], 'cam_height': 1.55, 'pitch': 3, 'fix_cam': False, 'pred_cam': False, 'model_name': 'LATR', 'weight_init': 'normal', 'mod': 'release_iccv/latr_1000_baseline', 'position_embedding': 'learned', 'max_lanes': 20, 'num_category': 21, 'prob_th': 0.5, 'num_class': 21, 'top_view_region': array([[-10, 103],
+       [ 10, 103],
+       [-10,   3],
+       [ 10,   3]]), 'anchor_y_steps': array([  3.        ,   8.26315789,  13.52631579,  18.78947368,
+        24.05263158,  29.31578947,  34.57894737,  39.84210526,
+        45.10526316,  50.36842105,  55.6315Sat, 14-Sep-2024 15:37:25 runner.py[line:252] INFO ========================================
+Args:Config (path: config/release_iccv/latr_1000_baseline.py): {'dataset_name': 'openlane', 'dataset': '1000', 'data_dir': '/media/data3/txq/programmings/git/data/openlane/lane3d_1000/', 'dataset_dir': '/media/data3/txq/programmings/git/data/openlane/images/', 'output_dir': 'openlane', 'org_h': 1280, 'org_w': 1920, 'crop_y': 0, 'ipm_h': 208, 'ipm_w': 128, 'resize_h': 720, 'resize_w': 960, 'mean': [0.485, 0.456, 0.406], 'std': [0.229, 0.224, 0.225], 'cam_height': 1.55, 'pitch': 3, 'fix_cam': False, 'pred_cam': False, 'model_name': 'LATR', 'weight_init': 'normal', 'mod': 'release_iccv/latr_1000_baseline', 'position_embedding': 'learned', 'max_lanes': 20, 'num_category': 21, 'prob_th': 0.5, 'num_class': 21, 'top_view_region': array([[-10, 103],
+       [ 10, 103],
+       [-10,   3],
+       [ 10,   3]]), 'anchor_y_steps': array([  3.        ,   8.26315789,  13.52631579,  18.78947368,
+        24.05263158,  29.31578947,  34.57894737,  39.84210526,
+        45.10526316,  50.36842105,  55.63157895,  60.89473684,
+        66.15789474,  71.42105263,  76.68421053,  81.94736842,
+        87.21052632,  92.47368421,  97.73684211, 103.        ]), 'num_y_steps': 20, 'K': array([[1000.,    0.,  960.],
+       [   0., 1000.,  640.],
+       [   0.,    0.,    1.]]), 'use_default_anchor': False, 'batch_size': 8, 'nepochs': 24, 'no_cuda': False, 'nworkers': 10, 'start_epoch': 0, 'channels_in': 3, 'test_mode': False, 'evaluate': False, 'resume': '', 'no_tb': False, 'print_freq': 50, 'save_freq': 50, 'dist': True, 'sync_bn': True, 'cudnn': True, 'distributed': True, 'local_rank': 0, 'gpu': 0, 'world_size': 1, 'nodes': 1, 'eval_ckpt': '', 'resume_from': '', 'evaluate_case': '', 'eval_freq': 4, 'save_json_path': '/media/data3/txq/programmings/git/LATR_visulization/work_dirs/openlane/release_iccv/latr_1000_baseline', 'save_root': 'work_dirs', 'save_prefix': '/media/data3/txq/programmings/git/LATR_visulization/work_dirs', 'save_path': '/media/data3/txq/programmings/git/LATR_visulization/work_dirs/openlane/release_iccv/latr_1000_baseline', 'optimizer': 'adam', 'learning_rate': 0.0002, 'weight_decay': 0.001, 'lr_decay': False, 'niter': 900, 'niter_decay': 400, 'lr_policy': 'cosine', 'gamma': 0.1, 'lr_decay_iters': 10, 'T_max': 8, 'T_0': 8, 'T_mult': 2, 'eta_min': 1e-05, 'clip_grad_norm': 20.0, 'loss_threshold': 100000.0, 'Config': <class 'mmcv.utils.config.Config'>, 'label_visulization': False, 'pos_threshold': 0.3, 'enlarge_length': 20, 'position_range': [-30, -17, -5, 30, 123, 5.0], 'photo_aug': {'brightness_delta': 16, 'contrast_range': (0.5, 1.5), 'saturation_range': (0.5, 1.5), 'hue_delta': 9}, '_dim_': 256, 'num_query': 40, 'num_pt_per_line': 20, 'latr_cfg': {'fpn_dim': 256, 'num_query': 40, 'num_group': 1, 'sparse_num_group': 4, 'encoder': {'type': 'ResNet', 'depth': 50, 'num_stages': 4, 'out_indices': (1, 2, 3), 'frozen_stages': 1, 'norm_cfg': {'type': 'BN2d', 'requires_grad': False}, 'norm_eval': True, 'style': 'caffe', 'dcn': {'type': 'DCNv2', 'deform_groups': 1}, 'stage_with_dcn': (False, False, True, True), 'init_cfg': {'type': 'Pretrained', 'checkpoint': 'torchvision://resnet50'}}, 'neck': {'type': 'FPN', 'in_channels': [512, 1024, 2048], 'out_channels': 256, 'start_level': 0, 'add_extra_convs': 'on_output', 'num_outs': 4, 'relu_before_extra_convs': True}, 'head': {'pt_as_query': True, 'num_pt_per_line': 20, 'xs_loss_weight': 2.0, 'zs_loss_weight': 10.0, 'vis_loss_weight': 1.0, 'cls_loss_weight': 10, 'project_loss_weight': 1.0}, 'trans_params': {'init_z': 0, 'bev_h': 150, 'bev_w': 70}}, 'ms2one': {'type': 'DilateNaive', 'inc': 256, 'outc': 256, 'num_scales': 4, 'dilations': (1, 2, 5, 9)}, 'transformer': {'type': 'LATRTransformer', 'decoder': {'type': 'LATRTransformerDecoder', 'embed_dims': 256, 'num_layers': 6, 'enlarge_length': 20, 'M_decay_ratio': 1, 'num_query': 40, 'num_anchor_per_query': 20, 'anchor_y_steps': array([  3.        ,   8.26315789,  13.52631579,  18.78947368,
+        24.05263158,  29.31578947,  34.57894737,  39.84210526,
+        45.10526316,  50.36842105,  55.63157895,  60.89473684,
+        66.15789474,  71.42105263,  76.68421053,  81.94736842,
+        87.21052632,  92.47368421,  97.73684211, 103.        ]), 'transformerlayers': {'type': 'LATRDecoderLayer', 'attn_cfgs': [{'type': 'MultiheadAttention', 'embed_dims': 256, 'num_heads': 4, 'dropout': 0.1}, {'type': 'MSDeformableAttention3D', 'embed_dims': 256, 'num_heads': 4, 'num_levels': 1, 'num_points': 8, 'batch_first': False, 'num_query': 40, 'num_anchor_per_query': 20, 'anchor_y_steps': array([  3.        ,   8.26315789,  13.52631579,  18.78947368,
+        24.05263158,  29.31578947,  34.57894737,  39.84210526,
+        45.10526316,  50.36842105,  55.63157895,  60.89473684,
+        66.15789474,  71.42105263,  76.68421053,  81.94736842,
+        87.21052632,  92.47368421,  97.73684211, 103.        ]), 'dropout': 0.1}], 'ffn_cfgs': {'type': 'FFN', 'embed_dims': 256, 'feedforward_channels': 2048, 'num_fcs': 2, 'ffn_drop': 0.1, 'act_cfg': {'type': 'ReLU', 'inplace': True}}, 'feedforward_channels': 2048, 'operation_order': ('self_attn', 'norm', 'cross_attn', 'norm', 'ffn', 'norm')}}}, 'sparse_ins_decoder': Config (path: None): {'encoder': {'out_dims': 256}, 'decoder': {'num_query': 40, 'num_group': 1, 'sparse_num_group': 4, 'hidden_dim': 256, 'kernel_dim': 256, 'num_classes': 21, 'num_convs': 4, 'output_iam': True, 'scale_factor': 1.0, 'ce_weight': 2.0, 'mask_weight': 5.0, 'dice_weight': 2.0, 'objectness_weight': 1.0}, 'sparse_decoder_weight': 5.0}, 'optimizer_cfg': {'type': 'AdamW', 'lr': 0.0002, 'paramwise_cfg': {'custom_keys': {'sampling_offsets': {'lr_mult': 0.1}}}, 'weight_decay': 0.01}, 'use_slurm': False, 'config': 'config/release_iccv/latr_1000_baseline.py', 'cfg_options': None, 'proc_id': 0, 'anchor_y_steps_dense': array([  3.        ,   3.50251256,   4.00502513,   4.50753769,
+         5.01005025,   5.51256281,   6.01507538,   6.51758794,
+         7.0201005 ,   7.52261307,   8.02512563,   8.52763819,
+         9.03015075,   9.53266332,  10.03517588,  10.53768844,
+        11.04020101,  11.54271357,  12.04522613,  12.54773869,
+        13.05025126,  13.55276382,  14.05527638,  14.55778894,
+        15.06030151,  15.56281407,  16.06532663,  16.5678392 ,
+        17.07035176,  17.57286432,  18.07537688,  18.57788945,
+        19.08040201,  19.58291457,  20.08542714,  20.5879397 ,
+        21.09045226,  21.59296482,  22.09547739,  22.59798995,
+        23.10050251,  23.60301508,  24.10552764,  24.6080402 ,
+        25.11055276,  25.61306533,  26.11557789,  26.61809045,
+        27.12060302,  27.62311558,  28.12562814,  28.6281407 ,
+        29.13065327,  29.63316583,  30.13567839,  30.63819095,
+        31.14070352,  31.64321608,  32.14572864,  32.64824121,
+        33.15075377,  33.65326633,  34.15577889,  34.65829146,
+        35.16080402,  35.66331658,  36.16582915,  36.66834171,
+        37.17085427,  37.67336683,  38.1758794 ,  38.67839196,
+        39.18090452,  39.68341709,  40.18592965,  40.68844221,
+        41.19095477,  41.69346734,  42.1959799 ,  42.69849246,
+        43.20100503,  43.70351759,  44.20603015,  44.70854271,
+        45.21105528,  45.71356784,  46.2160804 ,  46.71859296,
+        47.22110553,  47.72361809,  48.22613065,  48.72864322,
+        49.23115578,  49.73366834,  50.2361809 ,  50.73869347,
+        51.24120603,  51.74371859,  52.24623116,  52.74874372,
+        53.25125628,  53.75376884,  54.25628141,  54.75879397,
+        55.26130653,  55.7638191 ,  56.26633166,  56.76884422,
+        57.27135678,  57.77386935,  58.27638191,  58.77889447,
+        59.28140704,  59.7839196 ,  60.28643216,  60.78894472,
+        61.29145729,  61.79396985,  62.29648241,  62.79899497,
+        63.30150754,  63.8040201 ,  64.30653266,  64.80904523,
+        65.31155779,  65.81407035,  66.31658291,  66.81909548,
+        67.32160804,  67.8241206 ,  68.32663317,  68.82914573,
+        69.33165829,  692024-09-14 15:03:25,236 - mmdet - INFO - Init model: 'release_iccv/latr_1000_baseline'
+2024-09-14 15:03:25,237 - mmdet - INFO - Number of parameters in model release_iccv/latr_1000_baseline is 46.839M
+2024-09-14 15:03:25,237 - mmdet - INFO - 
+ => Start train set for EPOCH 1
+2024-09-14 15:03:25,237 - mmdet - INFO - lr is set to 0.0002
+2024-09-14 15:04:12,432 - mmdet - INFO - Epoch: [1][50/50]	Batch Time / Avg Time 0.662 (0.944)	Loss 52.62678528 | loss_ce_0:5.6326 | loss_objectness_0:0.0098 | loss_dice_0:8.9797 | loss_mask_0:0.8012 | all_xs_loss:26.6511 | all_zs_loss:6.2606 | all_vis_loss:0.6883 | all_cls_loss:0.1282 | project_loss:3.4753 
+2024-09-14 15:04:12,433 - mmdet - INFO - Epoch time : 0.013 hours.
+2024-09-14 15:04:12,434 - mmdet - INFO - Saving model at the end of Epoch 1
+2024-09-14 15:04:12,438 - mmdet - INFO - Saving checkpoint to /media/data3/txq/programmings/git/LATR_visulization/work_dirs/openlane/release_iccv/latr_1000_baseline
+2024-09-14 15:04:17,615 - mmdet - INFO - 
+ => Start train set for EPOCH 2
+2024-09-14 15:04:17,616 - mmdet - INFO - lr is set to 0.00019276855558857225
+2024-09-14 15:04:58,667 - mmdet - INFO - Epoch: [2][50/50]	Batch Time / Avg Time 0.625 (0.821)	Loss 37.51741791 | loss_ce_0:4.8784 | loss_objectness_0:2.0803 | loss_dice_0:7.0612 | loss_mask_0:0.5943 | all_xs_loss:15.2898 | all_zs_loss:3.8939 | all_vis_loss:0.6837 | all_cls_loss:0.1283 | project_loss:2.9075 
+2024-09-14 15:04:58,668 - mmdet - INFO - Epoch time : 0.011 hours.
+2024-09-14 15:04:58,668 - mmdet - INFO - Saving model at the end of Epoch 2
+2024-09-14 15:04:58,673 - mmdet - INFO - Saving checkpoint to /media/data3/txq/programmings/git/LATR_visulization/work_dirs/openlane/release_iccv/latr_1000_baseline
+2024-09-14 15:05:21,121 - mmdet - INFO - 
+ => Start train set for EPOCH 3
+2024-09-14 15:05:21,122 - mmdet - INFO - lr is set to 0.00017217514421272203
+-2024 15:37:12 runner.py[line:231] INFO Saving model at the end of Epoch 1
+Sat, 14-Sep-2024 15:37:12 runner.py[line:271] INFO Saving checkpoint to /media/data3/txq/programmings/git/LATR_visulization/work_dirs/openlane/release_iccv/latr_1000_baseline
+Sat, 14-Sep-2024 15:37:17 runner.py[line:133] INFO 
+ => Start train set for EPOCH 2
+Sat, 14-Sep-2024 15:37:17 runner.py[line:134] INFO lr is set to 0.00019276855558857225
+Sat, 14-Sep-2024 15:37:58 runner.py[line:202] INFO Epoch: [2][50/50]	Batch Time / Avg Time 0.625 (0.821)	Loss 37.51741791 | loss_ce_0:4.8784 | loss_objectness_0:2.0803 | loss_dice_0:7.0612 | loss_mask_0:0.5943 | all_xs_loss:15.2898 | all_zs_loss:3.8939 | all_vis_loss:0.6837 | all_cls_loss:0.1283 | project_loss:2.9075 
+Sat, 14-Sep-2024 15:37:58 runner.py[line:208] INFO Epoch time : 0.011 hours.
+Sat, 14-Sep-2024 15:37:58 runner.py[line:231] INFO Saving model at the end of Epoch 2
+Sat, 14-Sep-2024 15:37:58 runner.py[line:271] INFO Saving checkpoint to /media/data3/txq/programmings/git/LATR_visulization/work_dirs/openlane/release_iccv/latr_1000_baseline
+Sat, 14-Sep-2024 15:37:21 runner.py[line:133] INFO 
+ => Start train set for EPOCH 3
+Sat, 14-Sep-2024 15:37:21 runner.py[line:134] INFO lr is set to 0.00017217514421272203

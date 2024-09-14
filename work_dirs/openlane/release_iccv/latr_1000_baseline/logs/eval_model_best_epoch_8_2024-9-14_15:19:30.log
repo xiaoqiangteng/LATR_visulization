@@ -1,0 +1,38 @@
+Sat, 14-Sep-2024 15:37:30 runner.py[line:41] INFO Let's us2024-09-1Sat, 14-Sep-2024 15:37:30 runner.py[line:46] INFO Lo2024-09-14 15:19:3Sat, 14-Sep-2024 15:37:30 runner.p2024-09-14 15:19:30,684 - mSat, 14-Sep-2024 15:37:30 runner.py[line2024-09-14 15:19:30,962 - mmdet - INFSat, 14-Sep-2024 15:37:30 logging.py[line:107] INFO initialize ResNet with init_cfg {'type': 'Pretr2024-09-14 15:19:47,218 - mmdet - INFO - Convert model with Sync BatchNorm
+2024-09-14 15:19:49,122 - mmdet - INFO - => loading checkpoint '/media/data3/txq/programmings/git/LATR_visulization/work_dirs/openlane/release_iccv/latr_1000_baseline/baseline/model_best_epoch_8.pth'
+2024-09-14 15:20:17,750 - mmdet - INFO - match num:1163.0
+2024-09-14 15:20:17,751 - mmdet - INFO - cnt_gt_all:1595
+2024-09-14 15:20:17,751 - mmdet - INFO - cnt_pred_all:1603
+2024-09-14 15:20:17,751 - mmdet - INFO - cnt_gt_matched:1186.0
+2024-09-14 15:20:17,751 - mmdet - INFO - cnt_pred_matched:1192.0
+2024-09-14 15:20:17,869 - mmdet - INFO - ===> Evaluation laneline F-measure: 0.81222870
+2024-09-14 15:20:17,869 - mmdet - INFO - ===> Evaluation laneline Recall: 0.86340641
+2024-09-14 15:20:17,869 - mmdet - INFO - ===> Evaluation laneline Precision: 0.76677852
+2024-09-14 15:20:17,869 - mmdet - INFO - ===> Evaluation laneline Category Accuracy: 0.99312124
+2024-09-14 15:20:17,869 - mmdet - INFO - ===> Evaluation laneline x error (close): 0.15849543 m
+2024-09-14 15:20:17,869 - mmdet - INFO - ===> Evaluation laneline x error (far): 0.22823745 m
+2024-09-14 15:20:17,869 - mmdet - INFO - ===> Evaluation laneline z error (close): 0.07374875 m
+2024-09-14 15:20:17,869 - mmdet - INFO - ===> Evaluation laneline z error (far): 0.09281570 m
+atr_1000_baseline/baseline/model_best_epoch_8.pth'
+Sat, 14-Sep-2024 15:37:49 logging.py[line:107] INFO ModulatedDeformConvPack encoder.layer3.0.conv2 is upgraded to version 2.
+Sat, 14-Sep-2024 15:37:49 logging.py[line:107] INFO ModulatedDeformConvPack encoder.layer3.1.conv2 is upgraded to version 2.
+Sat, 14-Sep-2024 15:37:49 logging.py[line:107] INFO ModulatedDeformConvPack encoder.layer3.2.conv2 is upgraded to version 2.
+Sat, 14-Sep-2024 15:37:49 logging.py[line:107] INFO ModulatedDeformConvPack encoder.layer3.3.conv2 is upgraded to version 2.
+Sat, 14-Sep-2024 15:37:49 logging.py[line:107] INFO ModulatedDeformConvPack encoder.layer3.4.conv2 is upgraded to version 2.
+Sat, 14-Sep-2024 15:37:49 logging.py[line:107] INFO ModulatedDeformConvPack encoder.layer3.5.conv2 is upgraded to version 2.
+Sat, 14-Sep-2024 15:37:49 logging.py[line:107] INFO ModulatedDeformConvPack encoder.layer4.0.conv2 is upgraded to version 2.
+Sat, 14-Sep-2024 15:37:49 logging.py[line:107] INFO ModulatedDeformConvPack encoder.layer4.1.conv2 is upgraded to version 2.
+Sat, 14-Sep-2024 15:37:49 logging.py[line:107] INFO ModulatedDeformConvPack encoder.layer4.2.conv2 is upgraded to version 2.
+Sat, 14-Sep-2024 15:37:17 eval_3D_lane.py[line:634] INFO match num:1163.0
+Sat, 14-Sep-2024 15:37:17 eval_3D_lane.py[line:635] INFO cnt_gt_all:1595
+Sat, 14-Sep-2024 15:37:17 eval_3D_lane.py[line:636] INFO cnt_pred_all:1603
+Sat, 14-Sep-2024 15:37:17 eval_3D_lane.py[line:637] INFO cnt_gt_matched:1186.0
+Sat, 14-Sep-2024 15:37:17 eval_3D_lane.py[line:638] INFO cnt_pred_matched:1192.0
+Sat, 14-Sep-2024 15:37:17 runner.py[line:702] INFO ===> Evaluation laneline F-measure: 0.81222870
+Sat, 14-Sep-2024 15:37:17 runner.py[line:703] INFO ===> Evaluation laneline Recall: 0.86340641
+Sat, 14-Sep-2024 15:37:17 runner.py[line:704] INFO ===> Evaluation laneline Precision: 0.76677852
+Sat, 14-Sep-2024 15:37:17 runner.py[line:705] INFO ===> Evaluation laneline Category Accuracy: 0.99312124
+Sat, 14-Sep-2024 15:37:17 runner.py[line:706] INFO ===> Evaluation laneline x error (close): 0.15849543 m
+Sat, 14-Sep-2024 15:37:17 runner.py[line:707] INFO ===> Evaluation laneline x error (far): 0.22823745 m
+Sat, 14-Sep-2024 15:37:17 runner.py[line:708] INFO ===> Evaluation laneline z error (close): 0.07374875 m
+Sat, 14-Sep-2024 15:37:17 runner.py[line:709] INFO ===> Evaluation laneline z error (far): 0.09281570 m

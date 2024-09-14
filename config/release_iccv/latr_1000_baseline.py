@@ -11,8 +11,9 @@ mean = [0.485, 0.456, 0.406]
 std = [0.229, 0.224, 0.225]
 
 dataset = '1000'
-dataset_dir = './data/openlane/images/'
-data_dir = './data/openlane/lane3d_1000/'
+dataset_dir = '/media/data3/txq/programmings/git/data/openlane/images/'
+data_dir = '/media/data3/txq/programmings/git/data/openlane/lane3d_1000/'
+label_visulization=False
 
 batch_size = 8
 nworkers = 10
@@ -157,7 +158,7 @@ nepochs = 24
 resize_h = 720
 resize_w = 960
 
-eval_freq = 8
+eval_freq = 4
 optimizer_cfg = dict(
     type='AdamW',
     lr=2e-4,

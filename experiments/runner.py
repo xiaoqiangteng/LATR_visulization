@@ -227,6 +227,16 @@ class Runner:
             
                 self.log_eval_stats(eval_stats)
 
+            if is_main_process():
+                self.logger.info(f'Saving model at the end of Epoch {epoch + 1}')
+                self.save_checkpoint({
+                    'state_dict': model.module.state_dict(),
+                    'optimizer': optimizer.state_dict(),
+                    'scheduler': scheduler.state_dict(),
+                    'epoch': epoch + 1,
+                    'best_val_f1': best_val_f1,
+                }, False, epoch + 1, self.args.save_path)
+
             dist.barrier()
             torch.cuda.empty_cache()
 
@@ -261,10 +271,10 @@ class Runner:
             self.logger.info('Saving checkpoint to {}'.format(save_path))
 
             if to_copy:
-                file_pre = f'model_best_epoch_{epoch}.pth.tar'
+                file_pre = f'model_best_epoch_{epoch}.pth'
                 self.logger.info('save the best model : %s' % epoch)
             else:
-                file_pre = f'checkpoint_model_epoch_{epoch}.path.tar'
+                file_pre = f'checkpoint_model_epoch_{epoch}.pth'
 
             filepath = os.path.join(save_path, file_pre)
             torch.save(state, filepath)
@@ -390,7 +400,7 @@ class Runner:
             if 'openlane' in args.dataset_name:
                 eval_stats = self.evaluator.bench_one_submit_ddp(
                     pred_lines_sub, gt_lines_sub, args.model_name,
-                    args.pos_threshold, vis=False)
+                    args.pos_threshold, vis=False, label_visulization=args.label_visulization)
             elif 'once' in args.dataset_name:
                 eval_stats = self.evaluator.lane_evaluation(
                     args.data_dir + 'val', '%s/once_pred/test' % (args.save_path),
@@ -530,7 +540,8 @@ class Runner:
     def _get_train_dataset(self):
         args = self.args
         if 'openlane' in args.dataset_name:
-            train_dataset = LaneDataset(args.dataset_dir, args.data_dir + 'training/', args, data_aug=True)
+            # train_dataset = LaneDataset(args.dataset_dir, args.data_dir + 'training/', args, data_aug=True)
+            train_dataset = LaneDataset(args.dataset_dir, args.data_dir + 'validation_test/', args, data_aug=True)
 
         elif 'once' in args.dataset_name:
             train_dataset = LaneDataset(args.dataset_dir, ops.join(args.data_dir, 'train/'), args, data_aug=True)
@@ -622,7 +633,8 @@ class Runner:
         args = self.args
         if 'openlane' in args.dataset_name:
             if not args.evaluate_case:
-                valid_dataset = LaneDataset(args.dataset_dir, args.data_dir + 'validation/', args)
+                # valid_dataset = LaneDataset(args.dataset_dir, args.data_dir + 'validation/', args)
+                valid_dataset = LaneDataset(args.dataset_dir, args.data_dir + 'validation_test_1/', args)
             else:
                 # TODO eval case
                 valid_dataset = LaneDataset(args.dataset_dir, args.data_dir + 'test/up_down_case/', args)
