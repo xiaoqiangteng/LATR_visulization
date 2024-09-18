@@ -14,7 +14,7 @@ import json
 from dataset_generation_utils import *
 from utils.MinCostFlow import SolveMinCostFlow
 
-_file_path = "/media/data3/txq/programmings/git/LATR/work_dirs/openlane/release_iccv/latr_1000_baseline/visualization/"
+_file_path = "/media/data3/txq/programmings/git/LATR_visulization/work_dirs/openlane/release_iccv/latr_1000_baseline/visualization/"
 _file_path_image = "/media/data3/txq/programmings/git/data/openlane/images/"
 _top_view_region = np.array([[-10, 103], [10, 103], [-10, 3], [10, 3]])
 
@@ -266,27 +266,9 @@ def plot_3D(lane_prediction, lane_visibility_prediction, lane_ground_truth, lane
             curve_thickness = 2
             cv2.polylines(image_real, [np.column_stack((x_2d, y_2d))], isClosed=False, color=curve_color, thickness=curve_thickness)
         else:
-            print(data_list_P_g2im)
-            print(data_list_lane_ground_truth)
-                        
             x_2d, y_2d = projective_transformation(data_list_P_g2im, data_list_lane_ground_truth[:, 0], data_list_lane_ground_truth[:, 1], data_list_lane_ground_truth[:, 2])
-            
-            new_row = np.array([[0, 0, 0, 1]])
-            data_list_P_g2im = np.append(data_list_P_g2im, new_row, axis=0)
-            print(data_list_P_g2im)
-               
-            for k in range(len(x_2d)):
-                u, v = x_2d[k], y_2d[k]
-                image_coords_homogeneous = np.array([u, v, 1, 1])
-                transformed_coords_homogeneous = np.dot(np.linalg.pinv(data_list_P_g2im), image_coords_homogeneous)
-                x, y, z, w = transformed_coords_homogeneous
-                x_1, y_1, z_1 = data_list_lane_ground_truth[k, 0], data_list_lane_ground_truth[k, 1], data_list_lane_ground_truth[k, 2]
-                print(x, y, z, w, x_1, y_1, z_1)
-            
             x_2d = x_2d.astype(np.int32)
             y_2d = y_2d.astype(np.int32)
-
-            input()
                         
             curve_color = (0, 0, 255)
             curve_thickness = 2
@@ -571,7 +553,8 @@ def get_data_visulization(file_path, file_path_image):
         file_name = os.path.join(file_path, file)
         
         if 'validation+segment-14739149465358076158_4740_000_4760_000_with_camera_labels+155785723504742400' not in file_name:
-            continue
+            pass
+            # continue
         
         print(i, file_name)
         

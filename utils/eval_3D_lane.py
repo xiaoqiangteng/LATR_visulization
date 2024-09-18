@@ -44,7 +44,7 @@ from collections import OrderedDict
 from os import path as osp
 import json
 
-_file_path = "/media/data3/txq/programmings/git/LATR/work_dirs/openlane/release_iccv/latr_1000_baseline/visualization/"
+_file_path = "/media/data3/txq/programmings/git/LATR_visulization/work_dirs/openlane/release_iccv/latr_1000_baseline/visualization/"
 
 class LaneEval(object):
     def __init__(self, args, logger):        
