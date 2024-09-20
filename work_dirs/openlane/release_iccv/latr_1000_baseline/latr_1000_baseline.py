@@ -13,7 +13,7 @@ std = [0.229, 0.224, 0.225]
 dataset = '1000'
 dataset_dir = '/media/data3/txq/programmings/git/data/openlane/images/'
 data_dir = '/media/data3/txq/programmings/git/data/openlane/lane3d_1000/'
-label_visulization=True
+label_visulization=False
 
 batch_size = 8
 nworkers = 10

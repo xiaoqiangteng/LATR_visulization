@@ -540,8 +540,8 @@ class Runner:
     def _get_train_dataset(self):
         args = self.args
         if 'openlane' in args.dataset_name:
-            # train_dataset = LaneDataset(args.dataset_dir, args.data_dir + 'training/', args, data_aug=True)
-            train_dataset = LaneDataset(args.dataset_dir, args.data_dir + 'validation_test/', args, data_aug=True)
+            train_dataset = LaneDataset(args.dataset_dir, args.data_dir + 'training/', args, data_aug=True)
+            # train_dataset = LaneDataset(args.dataset_dir, args.data_dir + 'validation_test/', args, data_aug=True)
 
         elif 'once' in args.dataset_name:
             train_dataset = LaneDataset(args.dataset_dir, ops.join(args.data_dir, 'train/'), args, data_aug=True)
@@ -633,8 +633,8 @@ class Runner:
         args = self.args
         if 'openlane' in args.dataset_name:
             if not args.evaluate_case:
-                # valid_dataset = LaneDataset(args.dataset_dir, args.data_dir + 'validation/', args)
-                valid_dataset = LaneDataset(args.dataset_dir, args.data_dir + 'validation_test_1/', args)
+                valid_dataset = LaneDataset(args.dataset_dir, args.data_dir + 'validation/', args)
+                # valid_dataset = LaneDataset(args.dataset_dir, args.data_dir + 'validation_test_1/', args)
             else:
                 # TODO eval case
                 valid_dataset = LaneDataset(args.dataset_dir, args.data_dir + 'test/up_down_case/', args)

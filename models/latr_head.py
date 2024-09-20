@@ -19,6 +19,74 @@ from .utils import inverse_sigmoid
 from .transformer_bricks import *
 
 
+class HierarchicalQueryFiltering(nn.Module):
+    def __init__(self, top_k=100):
+        """
+        Args:
+            top_k (int): 保留最显著的 top_k 个查询
+        """
+        super(HierarchicalQueryFiltering, self).__init__()
+        self.top_k = top_k  # 保留的查询数量
+
+    def forward(self, queries, query_scores):
+        """
+        执行分层查询过滤，保留最显著的查询。
+        
+        Args:
+            queries (Tensor): 输入的查询 (batch_size, num_queries, hidden_dim)
+            query_scores (Tensor): 查询的得分 (batch_size, num_queries)
+
+        Returns:
+            filtered_queries (Tensor): 过滤后的查询 (batch_size, top_k, hidden_dim)
+        """
+        
+        device = queries.device  # 确保 queries 在 GPU 或 CPU
+        
+        query_scores = query_scores.to(device)  # 将 query_scores 移动到相同设备
+
+        # 获取每个 batch 中的 top_k 查询索引，并确保索引在相同设备上
+        top_k_indices = query_scores.topk(self.top_k, dim=1).indices.to(device)
+
+        # 通过索引提取对应的查询，确保所有张量位于相同设备上
+        batch_size, num_queries, hidden_dim = queries.shape
+
+        # 将 indices 和 expand 操作都显式地移动到相同设备
+        filtered_queries = torch.gather(
+            queries, 
+            1, 
+            top_k_indices.unsqueeze(-1).expand(batch_size, self.top_k, hidden_dim).to(device)
+        )
+
+        return filtered_queries
+
+
+class QueryRefinement(nn.Module):
+    def __init__(self):
+        super(QueryRefinement, self).__init__()
+        self.fusion_layer = nn.Linear(256, 256)  # 假设 hidden_dim = 256
+    
+    def forward(self, encoded_queries, additional_features=None):
+        """
+        对 Transformer 编码后的查询进行精化。
+        
+        Args:
+            encoded_queries (Tensor): Transformer 编码后的查询 (batch_size, num_queries, hidden_dim)
+            additional_features (Tensor, optional): 其他层次的特征 (batch_size, num_queries, hidden_dim)
+        
+        Returns:
+            refined_queries (Tensor): 精化后的查询
+        """
+        # 跨层特征融合：如果有附加特征，则将其融合
+        if additional_features is not None:
+            # 将编码后的查询和附加特征进行融合
+            refined_queries = encoded_queries + additional_features
+            refined_queries = self.fusion_layer(refined_queries)  # 融合后的查询通过线性层处理
+        else:
+            refined_queries = encoded_queries  # 如果没有附加特征，仅返回原始查询
+
+        return refined_queries
+
+
 class LATRHead(nn.Module):
     def __init__(self, args,
                  dim=128,
@@ -132,6 +200,8 @@ class LATRHead(nn.Module):
             nn.ReLU(),
             nn.Linear(self.embed_dims, self.embed_dims),
         )
+        self.query_filter = HierarchicalQueryFiltering(top_k=400)
+        self.query_refinement = QueryRefinement()
 
         # build pred layer: cls, reg, vis
         self.num_reg_fcs = num_reg_fcs
@@ -183,6 +253,12 @@ class LATRHead(nn.Module):
                 nn.init.constant_(m[-1].bias, bias_init)
         normal_(self.level_embeds)
 
+    def compute_query_scores(self, query_embeds):
+        # 伪代码：计算每个查询的显著性得分
+        # 可以基于某种策略，例如与目标的距离或特定特征的相关性
+        query_scores = torch.rand(query_embeds.size(0), query_embeds.size(1))  # 生成示例得分
+        return query_scores
+
     def forward(self, input_dict, is_training=True):
         output_dict = {}
         img_feats = input_dict['x']
@@ -209,6 +285,25 @@ class LATRHead(nn.Module):
         query = query.unsqueeze(2) + self.point_embedding.weight[None, None, ...]
        
         query_embeds = self.query_embedding(query).flatten(1, 2)
+        # print(query_embeds.shape)
+                
+        query_scores = self.compute_query_scores(query_embeds)
+                
+        filtered_queries = self.query_filter(query_embeds, query_scores)
+        
+        expected_query_size = query_embeds.size(1)
+        current_query_size = filtered_queries.size(1)
+        if current_query_size < expected_query_size:
+            padding_size = expected_query_size - current_query_size
+            padded_queries = F.pad(filtered_queries, (0, 0, 0, padding_size))
+        else:
+            padded_queries = filtered_queries
+
+        query_embeds = padded_queries
+        # print(filtered_queries.shape)
+        
+        # input()
+        
         query = torch.zeros_like(query_embeds)
         reference_points = self.reference_points(query_embeds)
         reference_points = reference_points.sigmoid()
