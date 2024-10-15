@@ -10,6 +10,7 @@ from experiments.runner import Runner
 from collections import OrderedDict
 from os import path as osp
 import json
+from tqdm import tqdm
 
 from dataset_generation_utils import *
 from utils.MinCostFlow import SolveMinCostFlow
@@ -542,13 +543,96 @@ def plot_IPM(lane_prediction, lane_visibility_prediction, lane_ground_truth, lan
     cv2.imwrite(output_file_name, merged_image)
 
 
+def compute_eval_stats(data_list):
+    """
+    计算N组数据的eval_stats
+    Args:
+        data_list (list): 包含N组数据，每组数据形如 [r_lane, p_lane, c_lane, cnt_gt, cnt_pred, match_num, x_error_close, x_error_far, z_error_close, z_error_far]
+    
+    Returns:
+        eval_stats (dict): 包含最终的评估结果统计
+    """
+    
+    # 初始化用于累加的指标
+    gather_metrics = {
+        'r_lane': 0, 
+        'p_lane': 0, 
+        'c_lane': 0, 
+        'cnt_gt': 0, 
+        'cnt_pred': 0, 
+        'match_num': 0,
+        'x_error_close': 0,
+        'x_error_far': 0,
+        'z_error_close': 0,
+        'z_error_far': 0
+    }
+    
+    # 遍历每组数据，累加各个指标
+    for data in data_list:
+        gather_metrics['r_lane'] += data[0]
+        gather_metrics['p_lane'] += data[1]
+        gather_metrics['c_lane'] += data[2]
+        gather_metrics['cnt_gt'] += data[3]
+        gather_metrics['cnt_pred'] += data[4]
+        gather_metrics['match_num'] += data[5]
+        gather_metrics['x_error_close'] += data[6]
+        gather_metrics['x_error_far'] += data[7]
+        gather_metrics['z_error_close'] += data[8]
+        gather_metrics['z_error_far'] += data[9]
+
+    # 计算召回率Recall
+    if gather_metrics['cnt_gt'] != 0:
+        Recall = gather_metrics['r_lane'] / gather_metrics['cnt_gt']
+    else:
+        Recall = gather_metrics['r_lane'] / (gather_metrics['cnt_gt'] + 1e-6)
+    
+    # 计算准确率Precision
+    if gather_metrics['cnt_pred'] != 0:
+        Precision = gather_metrics['p_lane'] / gather_metrics['cnt_pred']
+    else:
+        Precision = gather_metrics['p_lane'] / (gather_metrics['cnt_pred'] + 1e-6)
+    
+    # 计算F1 Score
+    if (Recall + Precision) != 0:
+        f1_score = 2 * Recall * Precision / (Recall + Precision)
+    else:
+        f1_score = 2 * Recall * Precision / (Recall + Precision + 1e-6)
+
+    # 计算分类准确率
+    if gather_metrics['match_num'] != 0:
+        category_accuracy = gather_metrics['c_lane'] / gather_metrics['match_num']
+    else:
+        category_accuracy = gather_metrics['c_lane'] / (gather_metrics['match_num'] + 1e-6)
+    
+    # 计算误差均值
+    avg_x_error_close = gather_metrics['x_error_close'] / len(data_list)
+    avg_x_error_far = gather_metrics['x_error_far'] / len(data_list)
+    avg_z_error_close = gather_metrics['z_error_close'] / len(data_list)
+    avg_z_error_far = gather_metrics['z_error_far'] / len(data_list)
+    
+    # 返回最终的eval_stats
+    eval_stats = {
+        'F1 Score': f1_score,
+        'Recall': Recall,
+        'Precision': Precision,
+        'Category Accuracy': category_accuracy,
+        'Avg X Error Close': avg_x_error_close,
+        'Avg X Error Far': avg_x_error_far,
+        'Avg Z Error Close': avg_z_error_close,
+        'Avg Z Error Far': avg_z_error_far
+    }
+    
+    return eval_stats
+
+
 def get_data_visulization(file_path, file_path_image):
     if file_path is None:
         return
 
     _, data_list_file = get_dir_and_file_list(file_path)
     
-    for i in range(len(data_list_file)):
+    data_list_error_entire = []
+    for i, data in enumerate(tqdm(data_list_file, desc="Processing data")):
         file = data_list_file[i]
         file_name = os.path.join(file_path, file)
         
@@ -589,11 +673,6 @@ def get_data_visulization(file_path, file_path_image):
                                         np.float32(top_view_region))
         H_g2ipm = np.linalg.inv(H_ipm2g)
         H_im2ipm = np.linalg.inv(np.matmul(H_crop, np.matmul(H_g2im, H_ipm2g)))
-        print(H_ipm2g)
-        print(H_g2ipm)
-        print(H_im2ipm)
-
-        # input()
 
         data_list_pred_lanes = np.array([np.array([np.array(data_lane) for data_lane in data_list]) for data_list in lane_prediction])
         data_list_gt_lanes = np.array([np.array([np.array(data_lane) for data_lane in data_list]) for data_list in lane_ground_truth])
@@ -624,9 +703,23 @@ def get_data_visulization(file_path, file_path_image):
                                                             data_list_pred_visibility_mat,
                                                             data_list_lane_ground_truth,
                                                             data_list_gt_visibility_mat)
-        print(r_lane, p_lane, c_lane, cnt_gt, cnt_pred, match_num, x_error_close, x_error_far, z_error_close, z_error_far)
-        data_list_error = [r_lane, p_lane, c_lane, cnt_gt, cnt_pred, match_num, x_error_close, x_error_far, z_error_close, z_error_far]
+        if len(x_error_close) == 0:
+            x_error_close = [-1.0]
+    
+        if len(x_error_far) == 0:
+            x_error_far = [-1.0]
+
+        if len(z_error_close) == 0:
+            z_error_close = [-1.0]
+
+        if len(z_error_far) == 0:
+            z_error_far = [-1.0]
         
+        print(r_lane, p_lane, c_lane, cnt_gt, cnt_pred, match_num, x_error_close[0], x_error_far[0], z_error_close[0], z_error_far[0])
+        data_list_error = [r_lane, p_lane, c_lane, cnt_gt, cnt_pred, match_num, x_error_close[0], x_error_far[0], z_error_close[0], z_error_far[0]]
+        data_list_error_entire.append(data_list_error)
+
+        """
         output_file_path_error = osp.join(_file_path, 'results_error/')
         if not os.path.exists(output_file_path_error):
             os.makedirs(output_file_path_error)
@@ -671,6 +764,7 @@ def get_data_visulization(file_path, file_path_image):
                 output_file_name=output_file_name,
                 file_name_image=file_name_image,
                 data_list_error=data_list_error)
+        """
 
         """
         plot_IPM(data_list_lane_prediction,
@@ -683,7 +777,9 @@ def get_data_visulization(file_path, file_path_image):
             file_name_image=file_name_image,
             data_list_error=data_list_error)
         """
-
+            
+    eval_stats = compute_eval_stats(data_list_error_entire)
+    print(eval_stats)
 
 
 if __name__ == "__main__":

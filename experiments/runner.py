@@ -513,6 +513,9 @@ class Runner:
                 best_file_name = best_file_name[0]
             else:
                 best_file_name = ''
+        
+        # best_file_name = "/media/data3/txq/programmings/git/LATR_visulization/work_dirs/openlane/release_iccv/latr_1000_baseline/checkpoint_model_epoch_50.pth"
+        
         if os.path.isfile(best_file_name):
             checkpoint = torch.load(best_file_name)
             if is_main_process():
@@ -607,10 +610,10 @@ class Runner:
             
         if len(path) == 0 and args.resume:
             # try the latest ckpt
-            path = os.path.join(args.save_path, 'checkpoint_model_epoch_{}.pth.tar'.format(int(args.resume)))
+            path = os.path.join(args.save_path, 'checkpoint_model_epoch_{}.pth'.format(int(args.resume)))
             # try the best ckpt saved
             if not os.path.isfile(path):
-                path = os.path.join(args.save_path, f'model_best_epoch_{args.resume}.pth.tar')
+                path = os.path.join(args.save_path, f'model_best_epoch_{args.resume}.pth')
             
         if os.path.isfile(path):
             self.logger.info("=> loading checkpoint from {}".format(path))
@@ -637,7 +640,7 @@ class Runner:
                 # valid_dataset = LaneDataset(args.dataset_dir, args.data_dir + 'validation_test_1/', args)
             else:
                 # TODO eval case
-                valid_dataset = LaneDataset(args.dataset_dir, args.data_dir + 'test/up_down_case/', args)
+                valid_dataset = LaneDataset(args.dataset_dir, args.data_dir + 'test/merge_split_case/', args)
 
         elif 'once' in args.dataset_name:
             valid_dataset = LaneDataset(args.dataset_dir, ops.join(args.data_dir, 'val/'), args)

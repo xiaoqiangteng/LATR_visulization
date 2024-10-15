@@ -14,8 +14,8 @@ std = [0.229, 0.224, 0.225]
 
 dataset_name = 'apollo'
 dataset = 'rare_subset'
-data_dir = osp.join('./data/apollosyn_gen-lanenet/data_splits', dataset)
-dataset_dir = './data/apollosyn_gen-lanenet/Apollo_Sim_3D_Lane_Release'
+data_dir = osp.join('/media/data3/txq/programmings/git/data/Apollo/data_splits', dataset)
+dataset_dir = '/media/data3/txq/programmings/git/data/Apollo/Apollo_Sim_3D_Lane_Release'
 output_dir = 'apollo'
 num_category = 2
 max_lanes = 6

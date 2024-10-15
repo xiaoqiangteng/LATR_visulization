@@ -1,6 +1,10 @@
 import numpy as np
+import math
+import cv2
+
 import torch
 import torch.nn as nn
+from torch.nn import init
 import torch.nn.functional as F
 from torch.nn.init import normal_
 
@@ -14,79 +18,54 @@ from models.sparse_ins import SparseInsDecoder
 from .utils import inverse_sigmoid
 from .transformer_bricks import *
 
-_dataset = 'Apollo'
 
+class HierarchicalQueryFiltering(nn.Module):
+    def __init__(self, top_k=100):
+        """
+        Args:
+            top_k (int): 保留最显著的 top_k 个查询
+        """
+        super(HierarchicalQueryFiltering, self).__init__()
+        self.top_k = top_k  # 保留的查询数量
 
-class LiquidNeuralNetwork(nn.Module):
-    def __init__(self, input_dim, hidden_dim, output_dim):
-        super(LiquidNeuralNetwork, self).__init__()
-        self.hidden_dim = hidden_dim
+    def forward(self, queries, query_scores):
+        """
+        执行分层查询过滤，保留最显著的查询，并将特征还原到原始位置。
 
-        # 输入层与隐藏层之间的可微分方程权重
-        self.input_to_hidden = nn.Linear(input_dim, hidden_dim)
-        # 隐藏层与输出层的权重
-        self.hidden_to_output = nn.Linear(hidden_dim, output_dim)
+        Args:
+            queries (Tensor): 输入的查询 (batch_size, num_queries, hidden_dim)
+            query_scores (Tensor): 查询的得分 (batch_size, num_queries)
 
-    def forward(self, x):
-        batch_size, seq_len, _ = x.size()
+        Returns:
+            restored_queries (Tensor): 还原后的查询 (batch_size, num_queries, hidden_dim)
+        """
+        device = queries.device  # 确保所有操作在同一设备上
+        query_scores = query_scores.to(device)
 
-        # 初始化隐藏状态：在每个 forward pass 中重新初始化
-        hidden_state = torch.zeros(batch_size, self.hidden_dim, device=x.device)
+        # 获取查询的形状信息
+        batch_size, num_queries, hidden_dim = queries.shape
+        
+        # 如果 top_k 大于 num_queries，直接将 top_k 限制为 num_queries
+        actual_top_k = min(self.top_k, num_queries)
+        
+        # 获取每个 batch 中的 top_k 查询索引
+        top_k_scores, top_k_indices = query_scores.topk(actual_top_k, dim=1, largest=True, sorted=False)
 
-        outputs = []
-        for t in range(seq_len):
-            current_input = x[:, t, :]
+        # 根据 top_k_indices 提取相应的查询
+        filtered_queries = torch.gather(queries, 1, top_k_indices.unsqueeze(-1).expand(batch_size, actual_top_k, hidden_dim))
 
-            # 使用非线性微分方程更新隐藏状态 (非 in-place 操作)
-            delta_state = torch.tanh(self.input_to_hidden(current_input) + hidden_state)
-            hidden_state = hidden_state + delta_state
+        # 构造原始查询大小的张量，并填充为 0
+        restored_queries = torch.zeros_like(queries, device=device)
 
-            # 计算输出
-            output = self.hidden_to_output(hidden_state)
-            outputs.append(output)
+        # 将 filtered_queries 的值根据原始索引还原到 restored_queries 中
+        restored_queries.scatter_(1, top_k_indices.unsqueeze(-1).expand(batch_size, actual_top_k, hidden_dim), filtered_queries)
 
-        # 将输出叠加，形状为 [batch_size, seq_len, output_dim]
-        outputs = torch.stack(outputs, dim=1)
+        return restored_queries
 
-        # 清除隐藏状态以避免在后续批次中复用
-        hidden_state = None
-
-        return outputs
-
-
-# 多尺度特征融合
-class MultiScaleFeatureFusion(nn.Module):
-    def __init__(self, hidden_dim=256):
-        super(MultiScaleFeatureFusion, self).__init__()
-        self.conv1 = nn.Conv2d(hidden_dim, hidden_dim, kernel_size=3, stride=1, padding=1)
-        self.conv2 = nn.Conv2d(hidden_dim, hidden_dim, kernel_size=3, stride=1, padding=1)
-        self.conv3 = nn.Conv2d(hidden_dim, hidden_dim, kernel_size=3, stride=1, padding=1)
-
-    def forward(self, features):
-        f1 = F.interpolate(features, scale_factor=0.5, mode='bilinear', align_corners=False)
-        f1 = self.conv1(f1)
-
-        f2 = self.conv2(features)
-
-        f3 = F.interpolate(features, scale_factor=2, mode='bilinear', align_corners=False)
-        f3 = self.conv3(f3)
-
-        f1 = F.interpolate(f1, size=f2.shape[2:], mode='bilinear', align_corners=False)
-        f3 = F.interpolate(f3, size=f2.shape[2:], mode='bilinear', align_corners=False)
-
-        data_feature = f1 + f2 + f3
-
-        return data_feature
-
-
-# 查询优化，结合 Liquid Neural Networks
-class QueryRefinementWithLNN(nn.Module):
+class QueryRefinement(nn.Module):
     def __init__(self, hidden_dim=256, num_heads=8):
-        super(QueryRefinementWithLNN, self).__init__()
-        # 自我注意机制
+        super(QueryRefinement, self).__init__()
         self.self_attn = nn.MultiheadAttention(embed_dim=hidden_dim, num_heads=num_heads, batch_first=True)
-
-        # 前馈网络部分
         self.ffn = nn.Sequential(
             nn.Linear(hidden_dim, hidden_dim),
             nn.ReLU(),
@@ -95,65 +74,17 @@ class QueryRefinementWithLNN(nn.Module):
         self.norm1 = nn.LayerNorm(hidden_dim)
         self.norm2 = nn.LayerNorm(hidden_dim)
 
-        # 线性层用于投影 additional_features 到所需的形状
-        
-        data_number = 800
-        if _dataset == 'Apollo':
-            data_number = 240
-        
-        self.feature_projection = nn.Linear(10800, data_number)
-
-        # 集成液态神经网络模块
-        self.lnn = LiquidNeuralNetwork(input_dim=hidden_dim, hidden_dim=hidden_dim, output_dim=hidden_dim)
-
     def forward(self, encoded_queries, additional_features=None):
-        # 执行自我注意力机制
+        # 自我注意机制
         attn_output, _ = self.self_attn(encoded_queries, encoded_queries, encoded_queries)
         attn_output = self.norm1(attn_output + encoded_queries)
 
-        # 融合额外特征
-        if additional_features is not None:
-            # 将 additional_features 投影到 [8, 800, 256] 的形状
-            additional_features = additional_features.permute(1, 0, 2)  # [256, 8, 10800] -> [8, 256, 10800]
-                        
-            additional_features = self.feature_projection(additional_features)  # [8, 256, 10800] -> [8, 256, 800]
-            additional_features = additional_features.permute(0, 2, 1)  # [8, 256, 800] -> [8, 800, 256]
-            combined_features = attn_output + additional_features
-        else:
-            combined_features = attn_output
-
-        # 使用液态神经网络对组合后的特征进行优化
-        refined_queries = self.lnn(combined_features)
-
         # 前馈网络进一步处理
-        refined_queries = self.ffn(refined_queries)
+        refined_queries = self.ffn(attn_output)
         refined_queries = self.norm2(refined_queries + attn_output)
 
         return refined_queries
-
-
-class HierarchicalQueryFiltering(nn.Module):
-    def __init__(self, top_k=100):
-        super(HierarchicalQueryFiltering, self).__init__()
-        self.top_k = top_k
-
-    def forward(self, queries, query_scores):
-        device = queries.device
-        query_scores = query_scores.to(device)
-
-        batch_size, num_queries, hidden_dim = queries.shape
-        actual_top_k = min(self.top_k, num_queries)
-
-        top_k_scores, top_k_indices = query_scores.topk(actual_top_k, dim=1, largest=True, sorted=False)
-
-        filtered_queries = torch.gather(queries, 1, top_k_indices.unsqueeze(-1).expand(batch_size, actual_top_k, hidden_dim))
-
-        restored_queries = torch.zeros_like(queries, device=device)
-
-        restored_queries.scatter_(1, top_k_indices.unsqueeze(-1).expand(batch_size, actual_top_k, hidden_dim), filtered_queries)
-
-        return restored_queries
-
+    
 
 class LATRHead(nn.Module):
     def __init__(self, args,
@@ -218,14 +149,18 @@ class LATRHead(nn.Module):
         self.gt_project_w = gt_project_w
 
         self.num_y_steps = args.num_y_steps
-        self.register_buffer('anchor_y_steps', torch.from_numpy(args.anchor_y_steps).float())
-        self.register_buffer('anchor_y_steps_dense', torch.from_numpy(args.anchor_y_steps_dense).float())
+        self.register_buffer('anchor_y_steps',
+            torch.from_numpy(args.anchor_y_steps).float())
+        self.register_buffer('anchor_y_steps_dense',
+            torch.from_numpy(args.anchor_y_steps_dense).float())
 
         project_crit['reduction'] = 'none'
-        self.project_crit = getattr(nn, project_crit.pop('type'))(**project_crit)
+        self.project_crit = getattr(
+            nn, project_crit.pop('type'))(**project_crit)
 
         self.num_classes = num_classes
         self.embed_dims = embed_dims
+        # points num along y-axis.
         self.code_size = pred_dim
         self.num_query = num_query
         self.num_group = num_group
@@ -264,16 +199,8 @@ class LATRHead(nn.Module):
             nn.ReLU(),
             nn.Linear(self.embed_dims, self.embed_dims),
         )
-        
-        top_k = 400
-        if _dataset == 'Apollo':
-            top_k = 120
-        
-        self.query_filter = HierarchicalQueryFiltering(top_k=top_k)
-        self.query_refinement = QueryRefinementWithLNN(hidden_dim=self.embed_dims)
-
-        # 新增多尺度特征融合
-        self.multi_scale_fusion = MultiScaleFeatureFusion(hidden_dim=self.embed_dims)
+        self.query_filter = HierarchicalQueryFiltering(top_k=400)
+        self.query_refinement = QueryRefinement()
 
         # build pred layer: cls, reg, vis
         self.num_reg_fcs = num_reg_fcs
@@ -324,7 +251,7 @@ class LATRHead(nn.Module):
             for m in self.cls_branches:
                 nn.init.constant_(m[-1].bias, bias_init)
         normal_(self.level_embeds)
-
+        
     def compute_query_scores(self, query_embeds):
         # 使用 L2 范数计算每个查询的显著性得分
         query_scores = torch.norm(query_embeds, dim=-1)  # 计算每个查询的 L2 范数
@@ -337,39 +264,37 @@ class LATRHead(nn.Module):
         if not isinstance(img_feats, (list, tuple)):
             img_feats = [img_feats]
 
-        # 执行稀疏实例解码
         sparse_output = self.sparse_ins(
             img_feats[0],
             lane_idx_map=input_dict['lane_idx'],
             input_shape=input_dict['seg'].shape[-2:],
             is_training=is_training)
-
+        # generate 2d pos emb
         B, C, H, W = img_feats[0].shape
         masks = img_feats[0].new_zeros((B, H, W))
 
+        # TODO use actual mask if using padding or other aug
         sin_embed = self.positional_encoding(masks)
         sin_embed = self.adapt_pos3d(sin_embed)
 
-        query = sparse_output['inst_features']  # BxNxC
+        # init query and reference pt
+        query = sparse_output['inst_features'] # BxNxC
+        # B, N, C -> B, N, num_anchor_per_line, C
         query = query.unsqueeze(2) + self.point_embedding.weight[None, None, ...]
-
+       
         query_embeds = self.query_embedding(query).flatten(1, 2)
-
-        # 多尺度特征融合
-        fused_features = self.multi_scale_fusion(img_feats[0])
-
-        # 计算查询分数
+        # print(query_embeds.shape)
+                
         query_scores = self.compute_query_scores(query_embeds)
-
-        # 查询过滤
+                
         filtered_queries = self.query_filter(query_embeds, query_scores)
 
-        # 查询优化，传入融合后的多尺度特征
-        refined_queries = self.query_refinement(filtered_queries, additional_features=fused_features.flatten(2).transpose(0, 1))
-        # refined_queries = self.query_refinement(filtered_queries)
+        refined_queries = self.query_refinement(filtered_queries)
 
         query_embeds = refined_queries
-
+        # query_embeds = refined_queries
+        # print(filtered_queries.shape)
+        
         query = torch.zeros_like(query_embeds)
         reference_points = self.reference_points(query_embeds)
         reference_points = reference_points.sigmoid()
@@ -383,7 +308,7 @@ class LATRHead(nn.Module):
         for lvl, feat in enumerate(mlvl_feats):
             bs, c, h, w = feat.shape
             spatial_shape = (h, w)
-            feat = feat.flatten(2).permute(2, 0, 1)  # NxBxC
+            feat = feat.flatten(2).permute(2, 0, 1) # NxBxC
             feat = feat + self.level_embeds[None, lvl:lvl+1, :].to(feat.device)
             spatial_shapes.append(spatial_shape)
             feat_flatten.append(feat)
@@ -413,6 +338,7 @@ class LATRHead(nn.Module):
              spatial_shapes.prod(1).cumsum(0)[:-1])
         )
 
+        # head
         pos_embed = None
         outs_dec, project_results, outputs_classes, outputs_coords = \
             self.transformer(
@@ -435,14 +361,17 @@ class LATRHead(nn.Module):
 
         all_cls_scores = torch.stack(outputs_classes)
         all_line_preds = torch.stack(outputs_coords)
-        all_line_preds[..., 0] = (all_line_preds[..., 0] * (self.pc_range[3] - self.pc_range[0]) + self.pc_range[0])
-        all_line_preds[..., 1] = (all_line_preds[..., 1] * (self.pc_range[5] - self.pc_range[2]) + self.pc_range[2])
+        all_line_preds[..., 0] = (all_line_preds[..., 0]
+            * (self.pc_range[3] - self.pc_range[0]) + self.pc_range[0])
+        all_line_preds[..., 1] = (all_line_preds[..., 1]
+            * (self.pc_range[5] - self.pc_range[2]) + self.pc_range[2])
 
-        # 恢复到原始格式
+        # reshape to original format
         all_line_preds = all_line_preds.view(
             len(outputs_classes), bs, self.num_query,
             self.transformer.decoder.num_anchor_per_query,
-            self.transformer.decoder.num_points_per_anchor, 2 + 1)
+            self.transformer.decoder.num_points_per_anchor, 2 + 1 # xz+vis
+        )
         all_line_preds = all_line_preds.permute(0, 1, 2, 5, 3, 4)
         all_line_preds = all_line_preds.flatten(3, 5)
 

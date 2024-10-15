@@ -14,8 +14,8 @@ std = [0.229, 0.224, 0.225]
 
 dataset_name = 'apollo'
 dataset = 'standard'
-data_dir = osp.join('./data/apollosyn_gen-lanenet/data_splits', dataset)
-dataset_dir = './data/apollosyn_gen-lanenet/Apollo_Sim_3D_Lane_Release'
+data_dir = osp.join('/media/data3/txq/programmings/git/data/Apollo/data_splits', dataset)
+dataset_dir = '/media/data3/txq/programmings/git/data/Apollo/Apollo_Sim_3D_Lane_Release'
 output_dir = 'apollo'
 num_category = 2
 max_lanes = 6
@@ -23,7 +23,7 @@ max_lanes = 6
 T_max = 30
 eta_min = 1e-6
 clip_grad_norm = 20
-nepochs = 210
+nepochs = 310
 eval_freq = 1
 
 h_org, w_org = 1080, 1920

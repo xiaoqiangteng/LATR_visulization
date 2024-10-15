@@ -154,7 +154,7 @@ sparse_ins_decoder=Config(
         sparse_decoder_weight=5.0,
 ))
 
-nepochs = 24
+nepochs = 50
 resize_h = 720
 resize_w = 960
 

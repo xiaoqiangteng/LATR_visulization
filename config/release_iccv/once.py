@@ -14,8 +14,8 @@ std = [0.229, 0.224, 0.225]
 
 dataset = 'once'
 dataset_name = 'once'
-data_dir = 'data/once/'
-dataset_dir = 'data/once/data/'
+data_dir = '/media/data3/txq/programmings/git/data/Once/'
+dataset_dir = '/media/data3/txq/programmings/git/data/Once/data/'
 eval_config_dir = 'config/_base_/once_eval_config.json'
 
 save_path = osp.join('./work_dirs', dataset)
@@ -162,8 +162,8 @@ sparse_ins_decoder=Config(
 
 resize_h = 720
 resize_w = 960
-nepochs = 24
-eval_freq = 8
+nepochs = 50
+eval_freq = 4
 
 optimizer_cfg = dict(
     type='AdamW',
