@@ -698,8 +698,19 @@ class Runner:
             json.dump(result, result_file)
 
     def log_eval_stats(self, eval_stats):
+        args = self.args
+        
         if self.is_apollo:
             return self._log_genlane_eval_info(eval_stats)
+
+        if 'once' in args.dataset_name:
+            if is_main_process():
+                self.logger.info("===> Evaluation laneline F-measure: {:.8f}".format(eval_stats[0][0]))
+                self.logger.info("===> Evaluation laneline Recall: {:.8f}".format(eval_stats[1][0]))
+                self.logger.info("===> Evaluation laneline Precision: {:.8f}".format(eval_stats[2][0]))
+                self.logger.info("===> Evaluation laneline CD Error: {:.8f}".format(eval_stats[3][0]))
+                
+                return
 
         if is_main_process():
             self.logger.info("===> Evaluation laneline F-measure: {:.8f}".format(eval_stats[0]))

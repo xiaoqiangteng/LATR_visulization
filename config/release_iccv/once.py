@@ -17,6 +17,7 @@ dataset_name = 'once'
 data_dir = '/media/data3/txq/programmings/git/data/Once/'
 dataset_dir = '/media/data3/txq/programmings/git/data/Once/data/'
 eval_config_dir = 'config/_base_/once_eval_config.json'
+output_dir = 'once'
 
 save_path = osp.join('./work_dirs', dataset)
 

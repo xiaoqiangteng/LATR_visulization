@@ -104,10 +104,18 @@ class LaneEval:
 
     def lane_evaluation(self, gt_root_path, pred_root_path, config_path, args=None):
         gt_files_list, pred_files_list = self.file_parser(gt_root_path, pred_root_path)
+        config = json.load(open(config_path))
+        
+        """
         with open(config_path, 'r') as file:
             file_lines = [line for line in file]
+            print(file_lines)
+            print(type(file_lines))
+            print(file_lines[0])
             if len(file_lines) != 0:
                 config = json.loads(file_lines[0])
+        """
+        
         # config = json.loads(config_path)
         process_num = config['process_num']
         score_l = int(config["score_l"] * 100)
@@ -182,7 +190,13 @@ class LaneEval:
         # ptable_to_csv(table=pt, filename=result_path)
         print(f'''legacy evaluate  end at {time.strftime('%Y-%m-%d @ %H:%M:%S')}''')
         
-        return F_value
+        output_stats = []
+        output_stats.append(F_value)
+        output_stats.append(recall)
+        output_stats.append(precision)
+        output_stats.append(distance_error)
+        
+        return output_stats
 
 
 def evaluate_list(gt_path_list, pred_path_list, config):
