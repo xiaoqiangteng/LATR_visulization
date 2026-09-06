@@ -15,8 +15,8 @@ from tqdm import tqdm
 from dataset_generation_utils import *
 from utils.MinCostFlow import SolveMinCostFlow
 
-_file_path = "/media/data3/txq/programmings/git/LATR_visulization/work_dirs/openlane/release_iccv/latr_1000_baseline/visualization/"
-_file_path_image = "/media/data3/txq/programmings/git/data/openlane/images/"
+_file_path = "/public/home/tengxiaoqiang/programmings/git/LATR_visulization/work_dirs/openlane/release_iccv/latr_1000_baseline/visualization/"
+_file_path_image = "/public/home/tengxiaoqiang/data/openlane/images/"
 _top_view_region = np.array([[-10, 103], [10, 103], [-10, 3], [10, 3]])
 
 
@@ -716,10 +716,10 @@ def get_data_visulization(file_path, file_path_image):
             z_error_far = [-1.0]
         
         print(r_lane, p_lane, c_lane, cnt_gt, cnt_pred, match_num, x_error_close[0], x_error_far[0], z_error_close[0], z_error_far[0])
-        data_list_error = [r_lane, p_lane, c_lane, cnt_gt, cnt_pred, match_num, x_error_close[0], x_error_far[0], z_error_close[0], z_error_far[0]]
+        # data_list_error = [r_lane, p_lane, c_lane, cnt_gt, cnt_pred, match_num, x_error_close[0], x_error_far[0], z_error_close[0], z_error_far[0]]
+        data_list_error = [r_lane, p_lane, c_lane, cnt_gt, cnt_pred, match_num, x_error_close, x_error_far, z_error_close, z_error_far]
         data_list_error_entire.append(data_list_error)
 
-        """
         output_file_path_error = osp.join(_file_path, 'results_error/')
         if not os.path.exists(output_file_path_error):
             os.makedirs(output_file_path_error)
@@ -764,7 +764,6 @@ def get_data_visulization(file_path, file_path_image):
                 output_file_name=output_file_name,
                 file_name_image=file_name_image,
                 data_list_error=data_list_error)
-        """
 
         """
         plot_IPM(data_list_lane_prediction,
@@ -778,8 +777,8 @@ def get_data_visulization(file_path, file_path_image):
             data_list_error=data_list_error)
         """
             
-    eval_stats = compute_eval_stats(data_list_error_entire)
-    print(eval_stats)
+    # eval_stats = compute_eval_stats(data_list_error_entire)
+    # print(eval_stats)
 
 
 if __name__ == "__main__":

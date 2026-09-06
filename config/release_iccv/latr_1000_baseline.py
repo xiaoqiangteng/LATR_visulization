@@ -6,13 +6,13 @@ _base_ = [
     '../_base_/optimizer.py'
 ]
 
-mod = 'release_iccv/latr_1000_baseline'
+mod = 'release_iccv/SalienceLane_V1'
 mean = [0.485, 0.456, 0.406]
 std = [0.229, 0.224, 0.225]
 
 dataset = '1000'
-dataset_dir = '/media/data3/txq/programmings/git/data/openlane/images/'
-data_dir = '/media/data3/txq/programmings/git/data/openlane/lane3d_1000/'
+dataset_dir = '/cloud/cloud-ssd2/data/openlane/images/'
+data_dir = '/cloud/cloud-ssd2/data/openlane/lane3d_1000/'
 label_visulization=False
 
 batch_size = 8
@@ -158,7 +158,7 @@ nepochs = 50
 resize_h = 720
 resize_w = 960
 
-eval_freq = 4
+eval_freq = 1
 optimizer_cfg = dict(
     type='AdamW',
     lr=2e-4,

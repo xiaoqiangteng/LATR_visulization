@@ -23,6 +23,8 @@ import numpy as np
 import random
 
 def setup_dist_launch(args):
+    if args.local_rank is None:
+        args.local_rank = int(os.environ.get('LOCAL_RANK', 0))
     args.proc_id = args.local_rank
     world_size = int(os.getenv('WORLD_SIZE', 1))*args.nodes
     print("proc_id: " + str(args.proc_id))

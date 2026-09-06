@@ -1,4 +1,5 @@
 import argparse
+import ortools.graph.pywrapgraph  # must load before torch/mmcv C++ exts (shared-lib symbol clash causes SIGSEGV)
 from mmcv.utils import Config, DictAction
 
 from utils.utils import *

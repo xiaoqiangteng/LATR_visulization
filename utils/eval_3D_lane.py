@@ -44,7 +44,7 @@ from collections import OrderedDict
 from os import path as osp
 import json
 
-_file_path = "/media/data3/txq/programmings/git/LATR_visulization/work_dirs/openlane/release_iccv/latr_1000_baseline/visualization/"
+_file_path = "/public/home/tengxiaoqiang/programmings/git/LATR_visulization/work_dirs/openlane/release_iccv/latr_1000_baseline/visualization/"
 
 class LaneEval(object):
     def __init__(self, args, logger):        
@@ -198,6 +198,7 @@ class LaneEval(object):
             file_path = file_path.replace('.jpg', '.json')
             
             if len(data_dict_lane) > 0:
+                os.makedirs(_file_path, exist_ok=True)
                 output_file_name = os.path.join(_file_path, file_path)
             
             write_file_json(data_dict_lane, output_file_name)

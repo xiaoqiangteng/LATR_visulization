@@ -4,7 +4,7 @@ from os import path as osp
 import os
 import json
 
-_file_path = "/media/data3/txq/programmings/git/LATR/work_dirs/openlane/release_iccv/latr_1000_baseline/visualization/"
+_file_path = "/public/home/tengxiaoqiang/programmings/git/LATR_visulization/work_dirs/openlane/release_iccv/latr_1000_baseline/visualization/"
 
 
 def get_dir_and_file_list(file_path):

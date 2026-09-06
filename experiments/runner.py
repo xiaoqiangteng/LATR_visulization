@@ -637,7 +637,7 @@ class Runner:
         if 'openlane' in args.dataset_name:
             if not args.evaluate_case:
                 valid_dataset = LaneDataset(args.dataset_dir, args.data_dir + 'validation/', args)
-                # valid_dataset = LaneDataset(args.dataset_dir, args.data_dir + 'validation_test_1/', args)
+                # valid_dataset = LaneDataset(args.dataset_dir, args.data_dir + 'validation_test/', args)
             else:
                 # TODO eval case
                 valid_dataset = LaneDataset(args.dataset_dir, args.data_dir + 'test/merge_split_case/', args)
